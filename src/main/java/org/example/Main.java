@@ -5,7 +5,9 @@ import org.example.domain.Usuario;
 import org.example.domain.Item;
 import org.example.service.UsuarioService;
 import org.example.service.ItemService;
+import org.example.ui.LoginUI;
 
+import javax.swing.*;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -18,7 +20,7 @@ public class Main {
 
         // setupService.setupDatabase();
 
-        UsuarioService usuarioService = new UsuarioService();
+        /*UsuarioService usuarioService = new UsuarioService();
         ItemService itemService = new ItemService();
 
         try {
@@ -127,6 +129,10 @@ public class Main {
                         " | Entrada: " + i.getDataEntrada() +
                         " | Usuário Retirada: " + i.getUsuarioRetirada());
             }
-        }
+        }*/
+        SwingUtilities.invokeLater(() -> {
+            LoginUI tela = new LoginUI();
+            tela.setVisible(true);
+        });
     }
 }

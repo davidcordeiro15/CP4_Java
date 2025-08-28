@@ -62,4 +62,19 @@ public class UsuarioDao {
             return rows > 0; // true se algum usuário foi atualizado
         }
     }
+    public boolean buscar(String nome, String email) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM usuarios WHERE nome = ? AND email = ?";
+        try (Connection conn = DatabaseConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nome);
+            stmt.setString(2, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // retorna true se achou algum usuário
+                }
+            }
+        }
+        return false;
+    }
 }

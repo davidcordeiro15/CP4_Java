@@ -11,8 +11,14 @@ public class UsuarioService {
     private UsuarioDao usuarioDAO = new UsuarioDao();
 
     // 🔹 Adicionar usuário
-    public void adicionarUsuario(Usuario usuario) throws SQLException {
-        usuarioDAO.salvar(usuario);
+    public Boolean  adicionarUsuario(Usuario usuario) throws SQLException {
+        try {
+            usuarioDAO.salvar(usuario);
+            return true;
+        } catch (Exception ex) {
+            System.out.println("Não foi possível adicionar o usuário ao banco: "  + ex);
+            return false;
+        }
     }
 
     // 🔹 Listar todos os usuários
@@ -34,4 +40,8 @@ public class UsuarioService {
     public boolean deletarUsuario(String nome, String email) throws SQLException {
         return usuarioDAO.deletar(nome, email);
     }
+    public boolean buscarUsuario(String nome, String email) throws SQLException {
+        return usuarioDAO.buscar(nome, email); // esse buscar retorna true se o user existe
+    }
+
 }
