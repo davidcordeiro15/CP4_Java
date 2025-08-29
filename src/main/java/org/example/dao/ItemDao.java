@@ -16,7 +16,7 @@ public class ItemDao {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, item.getNome());
             stmt.setInt(2, item.getQuantidade());
-            stmt.setDate(3, item.getDataEntrada());
+            stmt.setDate(3, new java.sql.Date(System.currentTimeMillis()));
             stmt.setString(4, item.getUsuarioRetirada());
             stmt.executeUpdate();
         }

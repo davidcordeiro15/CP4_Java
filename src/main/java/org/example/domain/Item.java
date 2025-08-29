@@ -7,7 +7,10 @@ public class Item {
     private String nome;
     private int quantidade;
     private Date dataEntrada;
-    private String usuarioRetirada;
+    private String nomeUsuarioRetirada;
+    private String nomeUsuarioEntrada;
+    private Date dataRetirada;
+
 
     // Getters e setters
     public int getId() { return id; }
@@ -22,6 +25,30 @@ public class Item {
     public Date getDataEntrada() { return dataEntrada; }
     public void setDataEntrada(Date dataEntrada) { this.dataEntrada = dataEntrada; }
 
-    public String getUsuarioRetirada() { return usuarioRetirada; }
-    public void setUsuarioRetirada(String usuarioRetirada) { this.usuarioRetirada = usuarioRetirada; }
+    public String getUsuarioRetirada() { return nomeUsuarioRetirada; }
+    public void setUsuarioRetirada(String usuarioRetirada) { this.nomeUsuarioRetirada = usuarioRetirada; }
+
+    public String getNomeUsuarioRetirada() {
+        return nomeUsuarioRetirada;
+    }
+
+    public void setNomeUsuarioRetirada(String nomeUsuarioRetirada) {
+        this.nomeUsuarioRetirada = nomeUsuarioRetirada;
+    }
+
+    public String getNomeUsuarioEntrada() {
+        return nomeUsuarioEntrada;
+    }
+
+    public void setNomeUsuarioEntrada(String nomeUsuarioEntrada) {
+        this.nomeUsuarioEntrada = nomeUsuarioEntrada;
+    }
+
+    public Date getDataRetirada() {
+        return dataRetirada;
+    }
+
+    public void setDataRetirada(Date dataRetirada) {
+        this.dataRetirada = dataRetirada;
+    }
 }
