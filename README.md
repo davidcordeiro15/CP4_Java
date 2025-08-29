@@ -2,7 +2,7 @@
 
 Este projeto foi desenvolvido em **Java 8** utilizando **Swing** para a
 interface gráfica e **JDBC** para integração com o banco de dados
-(Oracle ou PostgreSQL).\
+(Oracle).
 Ele permite o **cadastro, login e gerenciamento de usuários**, além de
 realizar o **CRUD de itens no estoque**.
 
@@ -12,20 +12,20 @@ realizar o **CRUD de itens no estoque**.
 
 ### 👤 Usuários
 
--   **Cadastro de Usuário:** cria novos usuários com nome e e-mail.\
+-   **Cadastro de Usuário:** cria novos usuários com nome e e-mail.
 -   **Login:** valida os dados de login (nome + e-mail) e acessa o
-    sistema.\
+    sistema.
 -   **Atualização de Usuário:** altera nome e e-mail de um usuário
-    existente.\
+    existente.
 -   **Exclusão de Usuário:** remove um usuário do sistema.
 
 ### 📦 Estoque
 
 -   **Visualização de Itens:** exibe todos os produtos cadastrados em
-    uma tabela.\
+    uma tabela.
 -   **Cadastro de Itens:** adiciona novos produtos ao estoque (nome,
-    quantidade e data de entrada).\
--   **Atualização de Itens:** permite editar informações de um produto.\
+    quantidade e data de entrada).
+-   **Atualização de Itens:** permite editar informações de um produto.
 -   **Exclusão de Itens:** remove um produto da tabela de estoque.
 
 ------------------------------------------------------------------------
@@ -58,36 +58,16 @@ realizar o **CRUD de itens no estoque**.
 
 ## 🗄 Banco de Dados
 
-O sistema utiliza um banco relacional (Oracle ou PostgreSQL).
+O sistema utiliza um banco relacional (Oracle).
 
-### Estrutura da Tabela `usuarios`
-
-``` sql
-CREATE TABLE usuarios (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE
-);
-```
-
-### Estrutura da Tabela `estoque`
-
-``` sql
-CREATE TABLE estoque (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    quantidade INT NOT NULL,
-    data_entrada DATE NOT NULL
-);
-```
 
 ------------------------------------------------------------------------
 
 ## 🧪 Testes
 
 O projeto conta com testes unitários utilizando **JUnit** e
-**Mockito**:\
-- Testa inserção, atualização, exclusão e listagem de usuários.\
+**Mockito**:
+- Testa inserção, atualização, exclusão e listagem de usuários.
 - Testa inserção, atualização, exclusão e listagem de itens do estoque.
 
 ------------------------------------------------------------------------
@@ -96,17 +76,17 @@ O projeto conta com testes unitários utilizando **JUnit** e
 
 ### 🔑 Tela de Login
 
--   Entrada de **nome** e **e-mail**.\
+-   Entrada de **nome** e **e-mail**.
 -   Acesso ao sistema caso os dados sejam válidos.
 
 ### 📝 Tela de Cadastro de Usuário
 
--   Campos para nome e e-mail.\
+-   Campos para nome e e-mail.
 -   Botão para registrar novo usuário.
 
 ### 📊 Tela de Estoque
 
--   Exibe tabela com os itens cadastrados.\
+-   Exibe tabela com os itens cadastrados.
 -   Botões: **Adicionar Produto**, **Atualizar Produto**, **Remover
     Produto**.
 
@@ -116,14 +96,14 @@ O projeto conta com testes unitários utilizando **JUnit** e
 
 1.  Clone o repositório:
 
-    ``` bash
+    ``` 
     git clone https://github.com/seu-usuario/seu-repo.git
     ```
 
 2.  Configure o banco de dados no arquivo
-    `DatabaseConnectionFactory.java`.\
+    `DatabaseConnectionFactory.java`.
 
-3.  Rode a classe `Main.java`.\
+3.  Rode a classe `Main.java`.
 
 4.  Utilize as telas de login, cadastro e estoque normalmente.
 
@@ -131,10 +111,10 @@ O projeto conta com testes unitários utilizando **JUnit** e
 
 ## ✅ Tecnologias Utilizadas
 
--   **Java 8**\
--   **Swing** (para UI)\
--   **JDBC** (integração com o banco de dados)\
--   **Oracle ou PostgreSQL** (persistência)\
+-   **Java 8**
+-   **Swing** (para UI)
+-   **JDBC** (integração com o banco de dados)
+-   **Oracle** (persistência)
 -   **JUnit 5** + **Mockito** (testes)
 
 ------------------------------------------------------------------------
