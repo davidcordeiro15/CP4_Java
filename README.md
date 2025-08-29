@@ -1,112 +1,146 @@
-📦 Sistema de Gestão de Usuários e Estoque
+# 📦 Sistema de Gestão de Usuários e Estoque
 
-Este projeto foi desenvolvido em Java 8 utilizando Swing para a interface gráfica e JDBC para integração com o banco de dados (Oracle ou PostgreSQL).
-Ele permite o cadastro, login e gerenciamento de usuários, além de realizar o CRUD de itens no estoque.
+Este projeto foi desenvolvido em **Java 8** utilizando **Swing** para a
+interface gráfica e **JDBC** para integração com o banco de dados
+(Oracle ou PostgreSQL).\
+Ele permite o **cadastro, login e gerenciamento de usuários**, além de
+realizar o **CRUD de itens no estoque**.
 
-🚀 Funcionalidades
-👤 Usuários
+------------------------------------------------------------------------
 
-Cadastro de Usuário: cria novos usuários com nome e e-mail.
+## 🚀 Funcionalidades
 
-Login: valida os dados de login (nome + e-mail) e acessa o sistema.
+### 👤 Usuários
 
-Atualização de Usuário: altera nome e e-mail de um usuário existente.
+-   **Cadastro de Usuário:** cria novos usuários com nome e e-mail.\
+-   **Login:** valida os dados de login (nome + e-mail) e acessa o
+    sistema.\
+-   **Atualização de Usuário:** altera nome e e-mail de um usuário
+    existente.\
+-   **Exclusão de Usuário:** remove um usuário do sistema.
 
-Exclusão de Usuário: remove um usuário do sistema.
+### 📦 Estoque
 
-📦 Estoque
+-   **Visualização de Itens:** exibe todos os produtos cadastrados em
+    uma tabela.\
+-   **Cadastro de Itens:** adiciona novos produtos ao estoque (nome,
+    quantidade e data de entrada).\
+-   **Atualização de Itens:** permite editar informações de um produto.\
+-   **Exclusão de Itens:** remove um produto da tabela de estoque.
 
-Visualização de Itens: exibe todos os produtos cadastrados em uma tabela.
+------------------------------------------------------------------------
 
-Cadastro de Itens: adiciona novos produtos ao estoque (nome, quantidade e data de entrada).
+## 🛠 Estrutura do Projeto
 
-Atualização de Itens: permite editar informações de um produto.
+    src/
+     └── org.example/
+         ├── Main.java                 # Classe principal para iniciar o sistema
+         ├── config/
+         │    └── DatabaseConnectionFactory.java  # Conexão com o banco de dados
+         ├── dao/
+         │    ├── DatabaseSetupDao.java # Criação das tabelas e estrutura inicial
+         │    ├── UsuarioDao.java       # Operações CRUD de usuários
+         │    └── ItemDao.java          # Operações CRUD de itens
+         ├── model/
+         │    ├── Usuario.java          # Classe modelo para usuários
+         │    └── Item.java             # Classe modelo para itens
+         ├── service/
+         │    ├── UsuarioService.java   # Regras de negócio dos usuários
+         │    └── ItemService.java      # Regras de negócio dos itens
+         ├── ui/
+         │    ├── LoginUI.java          # Tela de login
+         │    ├── CadastroUI.java       # Tela de cadastro de usuários
+         │    └── EstoqueUI.java        # Tela de gerenciamento do estoque
+         └── test/
+              └── AppTest.java          # Testes JUnit para Usuários e Itens
 
-Exclusão de Itens: remove um produto da tabela de estoque.
+------------------------------------------------------------------------
 
-🛠 Estrutura do Projeto
-src/
- └── org.example/
-     ├── Main.java                 # Classe principal para iniciar o sistema
-     ├── config/
-     │    └── DatabaseConnectionFactory.java  # Conexão com o banco de dados
-     ├── dao/
-     │    ├── DatabaseSetupDao.java # Criação das tabelas e estrutura inicial
-     │    ├── UsuarioDao.java       # Operações CRUD de usuários
-     │    └── ItemDao.java          # Operações CRUD de itens
-     ├── model/
-     │    ├── Usuario.java          # Classe modelo para usuários
-     │    └── Item.java             # Classe modelo para itens
-     ├── service/
-     │    ├── UsuarioService.java   # Regras de negócio dos usuários
-     │    └── ItemService.java      # Regras de negócio dos itens
-     ├── ui/
-     │    ├── LoginUI.java          # Tela de login
-     │    ├── CadastroUI.java       # Tela de cadastro de usuários
-     │    └── EstoqueUI.java        # Tela de gerenciamento do estoque
-     └── test/
-          └── AppTest.java          # Testes JUnit para Usuários e Itens
+## 🗄 Banco de Dados
 
-🗄 Banco de Dados
+O sistema utiliza um banco relacional (Oracle ou PostgreSQL).
 
-O sistema utiliza um banco relacional (Oracle).
+### Estrutura da Tabela `usuarios`
 
-🧪 Testes
+``` sql
+CREATE TABLE usuarios (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE
+);
+```
 
-O projeto conta com testes unitários utilizando JUnit e Mockito:
+### Estrutura da Tabela `estoque`
 
-Testa inserção, atualização, exclusão e listagem de usuários.
+``` sql
+CREATE TABLE estoque (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    quantidade INT NOT NULL,
+    data_entrada DATE NOT NULL
+);
+```
 
-Testa inserção, atualização, exclusão e listagem de itens do estoque.
+------------------------------------------------------------------------
 
-📷 Interfaces
-🔑 Tela de Login
+## 🧪 Testes
 
-Entrada de nome e e-mail.
+O projeto conta com testes unitários utilizando **JUnit** e
+**Mockito**:\
+- Testa inserção, atualização, exclusão e listagem de usuários.\
+- Testa inserção, atualização, exclusão e listagem de itens do estoque.
 
-Acesso ao sistema caso os dados sejam válidos.
+------------------------------------------------------------------------
 
-📝 Tela de Cadastro de Usuário
+## 📷 Interfaces
 
-Campos para nome e e-mail.
+### 🔑 Tela de Login
 
-Botão para registrar novo usuário.
+-   Entrada de **nome** e **e-mail**.\
+-   Acesso ao sistema caso os dados sejam válidos.
 
-📊 Tela de Estoque
+### 📝 Tela de Cadastro de Usuário
 
-Exibe tabela com os itens cadastrados.
+-   Campos para nome e e-mail.\
+-   Botão para registrar novo usuário.
 
-Botões: Adicionar Produto, Atualizar Produto, Remover Produto.
+### 📊 Tela de Estoque
 
-▶️ Como Executar
+-   Exibe tabela com os itens cadastrados.\
+-   Botões: **Adicionar Produto**, **Atualizar Produto**, **Remover
+    Produto**.
 
-Clone o repositório:
+------------------------------------------------------------------------
 
-git clone https://github.com/seu-usuario/seu-repo.git
+## ▶️ Como Executar
 
+1.  Clone o repositório:
 
-Configure o banco de dados no arquivo DatabaseConnectionFactory.java.
+    ``` bash
+    git clone https://github.com/seu-usuario/seu-repo.git
+    ```
 
-Rode a classe Main.java.
+2.  Configure o banco de dados no arquivo
+    `DatabaseConnectionFactory.java`.\
 
-Utilize as telas de login, cadastro e estoque normalmente.
+3.  Rode a classe `Main.java`.\
 
-✅ Tecnologias Utilizadas
+4.  Utilize as telas de login, cadastro e estoque normalmente.
 
-Java 8
+------------------------------------------------------------------------
 
-Swing (para UI)
+## ✅ Tecnologias Utilizadas
 
-JDBC (integração com o banco de dados)
+-   **Java 8**\
+-   **Swing** (para UI)\
+-   **JDBC** (integração com o banco de dados)\
+-   **Oracle ou PostgreSQL** (persistência)\
+-   **JUnit 5** + **Mockito** (testes)
 
-Oracle ou PostgreSQL (persistência)
+------------------------------------------------------------------------
 
-JUnit 5 + Mockito (testes)
+## 📌 Próximos Passos
 
-📌 Próximos Passos
-
-Adicionar sistema de autenticação com senha.
-
-Melhorar validações (ex: impedir nomes/emails duplicados).
-
-Criar relatórios de movimentação de estoque.
+-   Adicionar sistema de autenticação com senha.\
+-   Melhorar validações (ex: impedir nomes/emails duplicados).\
+-   Criar relatórios de movimentação de estoque.
