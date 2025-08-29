@@ -121,6 +121,6 @@ O projeto conta com testes unitários utilizando **JUnit** e
 
 ## 📌 Próximos Passos
 
--   Adicionar sistema de autenticação com senha.\
--   Melhorar validações (ex: impedir nomes/emails duplicados).\
+-   Adicionar sistema de autenticação com senha.
+-   Melhorar validações (ex: impedir nomes/emails duplicados).
 -   Criar relatórios de movimentação de estoque.
