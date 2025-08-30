@@ -65,7 +65,7 @@ public class ItemServiceTest {
         List<Item> lista = itemService.listarItens();
         Item primeiro = lista.get(0);
 
-        boolean deletado = itemService.deletarItem(primeiro.getId());
+        boolean deletado = itemService.deletarItem(primeiro.getId(), );
         Assertions.assertTrue(deletado);
 
         List<Item> listaAtualizada = itemService.listarItens();

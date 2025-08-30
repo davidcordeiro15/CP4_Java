@@ -2,7 +2,6 @@ package org.example.domain;
 
 public class Usuario {
     private String nome;
-
     private String email;
 
     public String getNome() {

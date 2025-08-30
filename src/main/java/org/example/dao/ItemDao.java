@@ -22,29 +22,45 @@ public class ItemDao {
         }
     }
 
-    // Ler (SELECT todos)
-    public List<Item> listarTodos() throws SQLException {
+
+    public List<Item> listarTodos() {
         List<Item> itens = new ArrayList<>();
-        String sql = "SELECT id, nome, quantidade, data_entrada, usuario_retirada FROM estoque";
+
+        String sql = "SELECT e.id, e.nome, e.quantidade, e.data_entrada, e.data_retirada, " +
+                "u1.nome AS usuarioEntrada, " +
+                "u2.nome AS usuarioRetirada " +
+                "FROM estoque e " +
+                "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.id " +
+                "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id";
+
         try (Connection conn = DatabaseConnectionFactory.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
-                Item i = new Item();
-                i.setId(rs.getInt("id"));
-                i.setNome(rs.getString("nome"));
-                i.setQuantidade(rs.getInt("quantidade"));
-                i.setDataEntrada(rs.getDate("data_entrada"));
-                i.setUsuarioRetirada(rs.getString("usuario_retirada"));
-                itens.add(i);
+                Item item = new Item();
+                item.setId(rs.getInt("id"));
+                item.setNome(rs.getString("nome"));
+                item.setQuantidade(rs.getInt("quantidade"));
+                item.setDataEntrada(rs.getDate("data_entrada"));
+                item.setDataRetirada(rs.getDate("data_retirada"));
+                item.setNomeUsuarioEntrada(rs.getString("usuarioEntrada"));
+                item.setNomeUsuarioRetirada(rs.getString("usuarioRetirada"));
+
+                itens.add(item);
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
         return itens;
     }
 
+
     // Atualizar (UPDATE)
     public boolean modificar(int id, Item novoItem) throws SQLException {
-        String sql = "UPDATE estoque SET nome = ?, quantidade = ?, data_entrada = ?, usuario_retirada = ? WHERE id = ?";
+        String sql = "UPDATE estoque SET nome = ?, quantidade = ?, data_entrada = ?, usuarioRetirada = ? WHERE id = ?";
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, novoItem.getNome());
@@ -58,13 +74,20 @@ public class ItemDao {
     }
 
     // Deletar (DELETE)
-    public boolean deletar(int id) throws SQLException {
-        String sql = "DELETE FROM estoque WHERE id = ?";
+    public boolean retirarItem(int idItem, String nomeUsuario) throws SQLException {
+        String sql = "UPDATE estoque " +
+                "SET usuarioRetirada  = ?, data_retirada = SYSTIMESTAMP " +
+                "WHERE id = ?";
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
+            stmt.setString(1, nomeUsuario);
+            stmt.setInt(2, idItem);
             int rows = stmt.executeUpdate();
             return rows > 0;
         }
     }
+
+
+
+
 }

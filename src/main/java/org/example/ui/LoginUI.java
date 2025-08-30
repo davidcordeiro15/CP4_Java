@@ -1,6 +1,7 @@
 package org.example.ui;
 
 import org.example.service.UsuarioService;
+import org.example.util.EmailValidator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,8 +54,26 @@ public class LoginUI extends JFrame {
     }
 
     private void loginUsuario(ActionEvent e) {
-        String nome = nomeField.getText();
-        String email = emailField.getText();
+        String nome = nomeField.getText().trim();
+        String email = emailField.getText().trim();
+
+        // Validação do email
+        if (!EmailValidator.isValidEmail(email)) {
+            JOptionPane.showMessageDialog(this,
+                    "Por favor, insira um email válido!",
+                    "Email Inválido",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Validação do nome
+        if (nome.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Por favor, insira seu nome!",
+                    "Nome Obrigatório",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         try {
             boolean encontrado = usuarioService.buscarUsuario(nome, email);
@@ -63,13 +82,18 @@ public class LoginUI extends JFrame {
                 dispose(); // Fecha a tela de login
                 new EstoqueUI().setVisible(true); // Abre a tela do estoque
             } else {
-                JOptionPane.showMessageDialog(this, "Usuário não encontrado!");
+                JOptionPane.showMessageDialog(this,
+                        "Usuário não encontrado! Verifique suas credenciais.",
+                        "Login Falhou",
+                        JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao conectar com o banco de dados: " + ex.getMessage(),
+                    "Erro de Conexão",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
-
 
     private void limparCampos() {
         nomeField.setText("");

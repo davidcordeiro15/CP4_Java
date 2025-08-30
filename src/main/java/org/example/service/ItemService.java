@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.example.dao.ItemDao;
 import org.example.domain.Item;
+import org.example.domain.Usuario;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -21,7 +22,7 @@ public class ItemService {
         return itemDAO.modificar(id, novoItem);
     }
 
-    public boolean deletarItem(int id) throws SQLException {
-        return itemDAO.deletar(id);
+    public boolean deletarItem(int id, String nomeUsuarioRetirada) throws SQLException {
+        return itemDAO.retirarItem(id, nomeUsuarioRetirada);
     }
 }

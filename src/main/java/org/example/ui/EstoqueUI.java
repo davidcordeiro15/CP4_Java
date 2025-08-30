@@ -67,9 +67,9 @@ public class EstoqueUI extends JFrame {
                         i.getNome(),
                         i.getQuantidade(),
                         i.getDataEntrada(),
-                        i.getNomeUsuarioEntrada(), // novo campo
+                        i.getNomeUsuarioEntrada(),
                         i.getDataRetirada(),
-                        i.getUsuarioRetirada()
+                        i.getNomeUsuarioEntrada()
                 });
             }
         } catch (SQLException e) {
@@ -179,9 +179,9 @@ public class EstoqueUI extends JFrame {
             itemAtualizado.setDataEntrada(new java.sql.Date(System.currentTimeMillis()));
             itemAtualizado.setNomeUsuarioEntrada((String) modelo.getValueAt(linha, 4));
             itemAtualizado.setDataRetirada(new java.sql.Date(System.currentTimeMillis()));
-            itemAtualizado.setUsuarioRetirada(usuarioRetirada);
+            itemAtualizado.setNomeUsuarioRetirada(usuarioRetirada);
 
-            boolean atualizado = itemService.atualizarItem(id, itemAtualizado);
+            boolean atualizado = itemService.deletarItem(id, usuarioRetirada);
             if (atualizado) {
                 JOptionPane.showMessageDialog(this, "Retirada registrada com sucesso!");
                 carregarDados();
