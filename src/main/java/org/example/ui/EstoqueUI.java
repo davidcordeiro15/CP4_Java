@@ -1,198 +1,455 @@
 package org.example.ui;
 
 import org.example.domain.Item;
+import org.example.domain.Usuario;
 import org.example.service.ItemService;
+import org.example.service.UsuarioService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class EstoqueUI extends JFrame {
     private JTable tabelaEstoque;
     private DefaultTableModel modelo;
     private ItemService itemService;
+    private UsuarioService usuarioService;
 
-    public EstoqueUI() {
+    public EstoqueUI(Usuario usuario) {
         itemService = new ItemService();
+        usuarioService = new UsuarioService();
 
-        setTitle("Sistema - Estoque");
-        setSize(900, 500);
+        setTitle("Sistema de Gerenciamento de Estoque");
+        setSize(1200, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
 
-        // Modelo da tabela
-        modelo = new DefaultTableModel();
+        // Painel principal
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Título
+        JLabel titulo = new JLabel("Controle de Estoque", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 18));
+        mainPanel.add(titulo, BorderLayout.NORTH);
+
+        // Modelo da tabela com mais colunas
+        modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Tabela não editável
+            }
+        };
+
         modelo.addColumn("ID");
-        modelo.addColumn("Nome do Item");
+        modelo.addColumn("Nome");
+        modelo.addColumn("Descrição");
+        modelo.addColumn("Categoria");
         modelo.addColumn("Quantidade");
+        modelo.addColumn("Localização");
         modelo.addColumn("Data Entrada");
         modelo.addColumn("Usuário Entrada");
         modelo.addColumn("Data Retirada");
         modelo.addColumn("Usuário Retirada");
 
         tabelaEstoque = new JTable(modelo);
+        tabelaEstoque.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabelaEstoque.getTableHeader().setReorderingAllowed(false);
+
         JScrollPane scrollPane = new JScrollPane(tabelaEstoque);
+        scrollPane.setPreferredSize(new Dimension(1100, 400));
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
 
         // Painel com botões
-        JPanel painelBotoes = new JPanel();
-        JButton btnAdicionar = new JButton("Adicionar Produto");
-        JButton btnAtualizar = new JButton("Atualizar Produto");
-        JButton btnRetirar = new JButton("Retirar Produto");
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton btnAdicionar = new JButton("Adicionar Item");
+        JButton btnEditar = new JButton("Editar Item");
+        JButton btnRetirar = new JButton("Retirar Item");
+        JButton btnDeletar = new JButton("Deletar Item");
+        JButton btnAtualizar = new JButton("Atualizar Tabela");
+
+        // Estilizar botões
+        Color buttonColor = new Color(70, 130, 180);
+        Color buttonTextColor = Color.WHITE;
+        for (JButton button : new JButton[]{btnAdicionar, btnEditar, btnRetirar, btnDeletar, btnAtualizar}) {
+            button.setBackground(buttonColor);
+            button.setForeground(buttonTextColor);
+            button.setFocusPainted(false);
+        }
 
         painelBotoes.add(btnAdicionar);
-        painelBotoes.add(btnAtualizar);
+        painelBotoes.add(btnEditar);
         painelBotoes.add(btnRetirar);
+        painelBotoes.add(btnDeletar);
+        painelBotoes.add(btnAtualizar);
 
-        add(scrollPane, BorderLayout.CENTER);
-        add(painelBotoes, BorderLayout.SOUTH);
+        mainPanel.add(painelBotoes, BorderLayout.SOUTH);
+
+        add(mainPanel);
 
         // Carrega os dados do banco
         carregarDados();
 
         // Eventos
-        btnAdicionar.addActionListener(e -> adicionarProduto());
-        btnAtualizar.addActionListener(e -> atualizarProduto());
-        btnRetirar.addActionListener(e -> retirarProduto());
+        btnAdicionar.addActionListener(e -> adicionarItem());
+        btnEditar.addActionListener(e -> editarItem());
+        btnRetirar.addActionListener(e -> retirarItem());
+        btnDeletar.addActionListener(e -> deletarItem());
+        btnAtualizar.addActionListener(e -> carregarDados());
+
+        // Duplo clique para editar
+        tabelaEstoque.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    editarItem();
+                }
+            }
+        });
     }
 
     private void carregarDados() {
         modelo.setRowCount(0); // limpa tabela
         try {
             List<Item> itens = itemService.listarItens();
-            for (Item i : itens) {
+            for (Item item : itens) {
                 modelo.addRow(new Object[]{
-                        i.getId(),
-                        i.getNome(),
-                        i.getQuantidade(),
-                        i.getDataEntrada(),
-                        i.getNomeUsuarioEntrada(),
-                        i.getDataRetirada(),
-                        i.getNomeUsuarioEntrada()
+                        item.getId(),
+                        item.getNome(),
+                        item.getDescricao(),
+                        item.getCategoria(),
+                        item.getQuantidade(),
+                        item.getLocalizacao(),
+                        item.getDataEntrada(),
+                        item.getUsuarioEntrada() != null ? item.getUsuarioEntrada().getNome() : "N/A",
+                        item.getDataRetirada(),
+                        item.getUsuarioRetirada() != null ? item.getUsuarioRetirada().getNome() : "N/A"
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar estoque: " + e.getMessage());
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar estoque: " + e.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void adicionarProduto() {
-        String nome = JOptionPane.showInputDialog(this, "Nome do produto:");
-        if (nome == null || nome.trim().isEmpty()) return;
+    private void adicionarItem() {
+        JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
 
-        String qtdStr = JOptionPane.showInputDialog(this, "Quantidade:");
-        if (qtdStr == null || qtdStr.trim().isEmpty()) return;
+        JTextField nomeField = new JTextField();
+        JTextField descricaoField = new JTextField();
+        JTextField categoriaField = new JTextField();
+        JTextField quantidadeField = new JTextField();
+        JTextField localizacaoField = new JTextField();
+        JTextField usuarioIdField = new JTextField();
 
-        String usuarioEntrada = JOptionPane.showInputDialog(this, "Usuário responsável pela entrada:");
-        if (usuarioEntrada == null || usuarioEntrada.trim().isEmpty()) usuarioEntrada = "Sistema";
+        panel.add(new JLabel("Nome:*"));
+        panel.add(nomeField);
+        panel.add(new JLabel("Descrição:"));
+        panel.add(descricaoField);
+        panel.add(new JLabel("Categoria:"));
+        panel.add(categoriaField);
+        panel.add(new JLabel("Quantidade:*"));
+        panel.add(quantidadeField);
+        panel.add(new JLabel("Localização:"));
+        panel.add(localizacaoField);
+        panel.add(new JLabel("ID Usuário Entrada:*"));
+        panel.add(usuarioIdField);
 
-        try {
-            int quantidade = Integer.parseInt(qtdStr);
-            Item item = new Item();
-            item.setNome(nome);
-            item.setQuantidade(quantidade);
-            item.setDataEntrada(new java.sql.Date(System.currentTimeMillis()));
-            item.setNomeUsuarioEntrada(usuarioEntrada);
+        int result = JOptionPane.showConfirmDialog(this, panel, "Adicionar Novo Item",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            itemService.adicionarItem(item);
-            JOptionPane.showMessageDialog(this, "Produto adicionado com sucesso!");
-            carregarDados();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Quantidade inválida!");
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao adicionar produto: " + ex.getMessage());
-        }
-    }
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                // Validações
+                if (nomeField.getText().trim().isEmpty()) {
+                    throw new IllegalArgumentException("Nome é obrigatório");
+                }
 
-    private void atualizarProduto() {
-        int linha = tabelaEstoque.getSelectedRow();
-        if (linha == -1) {
-            JOptionPane.showMessageDialog(this, "Selecione um produto para atualizar!");
-            return;
-        }
+                int quantidade = Integer.parseInt(quantidadeField.getText());
+                if (quantidade < 0) {
+                    throw new IllegalArgumentException("Quantidade não pode ser negativa");
+                }
 
-        int id = (int) modelo.getValueAt(linha, 0);
-        String nomeAtual = (String) modelo.getValueAt(linha, 1);
-        int qtdAtual = (int) modelo.getValueAt(linha, 2);
-        String usuarioEntradaAtual = (String) modelo.getValueAt(linha, 4);
+                int usuarioId = Integer.parseInt(usuarioIdField.getText());
 
-        String novoNome = JOptionPane.showInputDialog(this, "Novo nome:", nomeAtual);
-        if (novoNome == null || novoNome.trim().isEmpty()) return;
+                // Verificar se usuário existe
+                Optional<Usuario> usuario = usuarioService.buscarUsuarioPorId(usuarioId);
+                if (usuario.isEmpty()) {
+                    throw new IllegalArgumentException("Usuário com ID " + usuarioId + " não encontrado");
+                }
 
-        String novaQtdStr = JOptionPane.showInputDialog(this, "Nova quantidade:", qtdAtual);
-        if (novaQtdStr == null || novaQtdStr.trim().isEmpty()) return;
+                Item item = new Item();
+                item.setNome(nomeField.getText().trim());
+                item.setDescricao(descricaoField.getText().trim());
+                item.setCategoria(categoriaField.getText().trim());
+                item.setQuantidade(quantidade);
+                item.setLocalizacao(localizacaoField.getText().trim());
+                item.setUsuarioEntradaId(usuarioId);
 
-        String novoUsuario = JOptionPane.showInputDialog(this, "Usuário responsável pela entrada:", usuarioEntradaAtual);
-        if (novoUsuario == null || novoUsuario.trim().isEmpty()) novoUsuario = usuarioEntradaAtual;
+                boolean sucesso = itemService.adicionarItem(item);
+                if (sucesso) {
+                    JOptionPane.showMessageDialog(this, "Item adicionado com sucesso!");
+                    carregarDados();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao adicionar item.");
+                }
 
-        try {
-            int novaQtd = Integer.parseInt(novaQtdStr);
-
-            Item novoItem = new Item();
-            novoItem.setNome(novoNome);
-            novoItem.setQuantidade(novaQtd);
-            novoItem.setDataEntrada(new java.sql.Date(System.currentTimeMillis()));
-            novoItem.setNomeUsuarioEntrada(novoUsuario);
-
-            boolean atualizado = itemService.atualizarItem(id, novoItem);
-            if (atualizado) {
-                JOptionPane.showMessageDialog(this, "Produto atualizado com sucesso!");
-                carregarDados();
-            } else {
-                JOptionPane.showMessageDialog(this, "Erro: produto não encontrado!");
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Por favor, insira valores numéricos válidos para quantidade e ID do usuário.",
+                        "Erro de Formato",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Erro de banco de dados: " + e.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Quantidade inválida!");
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao atualizar produto: " + ex.getMessage());
         }
     }
 
-    private void retirarProduto() {
+    private void editarItem() {
         int linha = tabelaEstoque.getSelectedRow();
         if (linha == -1) {
-            JOptionPane.showMessageDialog(this, "Selecione um produto para retirar!");
+            JOptionPane.showMessageDialog(this,
+                    "Selecione um item para editar!",
+                    "Aviso",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int id = (int) modelo.getValueAt(linha, 0);
-        String nomeProduto = (String) modelo.getValueAt(linha, 1);
-        int qtdAtual = (int) modelo.getValueAt(linha, 2);
-
-        String qtdRetiradaStr = JOptionPane.showInputDialog(this, "Quantidade a retirar de " + nomeProduto + ":");
-        if (qtdRetiradaStr == null || qtdRetiradaStr.trim().isEmpty()) return;
+        int id = (Integer) modelo.getValueAt(linha, 0);
 
         try {
-            int qtdRetirada = Integer.parseInt(qtdRetiradaStr);
-            if (qtdRetirada <= 0 || qtdRetirada > qtdAtual) {
-                JOptionPane.showMessageDialog(this, "Quantidade inválida para retirada!");
+            Optional<Item> itemOptional = Optional.ofNullable(itemService.buscarItemPorId(id));
+            if (itemOptional.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Item não encontrado!");
                 return;
             }
 
-            String usuarioRetirada = JOptionPane.showInputDialog(this, "Usuário que retirou:");
-            if (usuarioRetirada == null || usuarioRetirada.trim().isEmpty()) usuarioRetirada = "Desconhecido";
+            Item item = itemOptional.get();
+            JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
 
-            Item itemAtualizado = new Item();
-            itemAtualizado.setNome(nomeProduto);
-            itemAtualizado.setQuantidade(qtdAtual - qtdRetirada);
-            itemAtualizado.setDataEntrada(new java.sql.Date(System.currentTimeMillis()));
-            itemAtualizado.setNomeUsuarioEntrada((String) modelo.getValueAt(linha, 4));
-            itemAtualizado.setDataRetirada(new java.sql.Date(System.currentTimeMillis()));
-            itemAtualizado.setNomeUsuarioRetirada(usuarioRetirada);
+            JTextField nomeField = new JTextField(item.getNome());
+            JTextField descricaoField = new JTextField(item.getDescricao());
+            JTextField categoriaField = new JTextField(item.getCategoria());
+            JTextField quantidadeField = new JTextField(String.valueOf(item.getQuantidade()));
+            JTextField localizacaoField = new JTextField(item.getLocalizacao());
+            JTextField usuarioIdField = new JTextField(String.valueOf(item.getUsuarioEntradaId()));
 
-            boolean atualizado = itemService.deletarItem(id, usuarioRetirada);
-            if (atualizado) {
-                JOptionPane.showMessageDialog(this, "Retirada registrada com sucesso!");
-                carregarDados();
-            } else {
-                JOptionPane.showMessageDialog(this, "Erro ao registrar retirada!");
+            panel.add(new JLabel("Nome:*"));
+            panel.add(nomeField);
+            panel.add(new JLabel("Descrição:"));
+            panel.add(descricaoField);
+            panel.add(new JLabel("Categoria:"));
+            panel.add(categoriaField);
+            panel.add(new JLabel("Quantidade:*"));
+            panel.add(quantidadeField);
+            panel.add(new JLabel("Localização:"));
+            panel.add(localizacaoField);
+            panel.add(new JLabel("ID Usuário Entrada:*"));
+            panel.add(usuarioIdField);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Editar Item - ID: " + id,
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            if (result == JOptionPane.OK_OPTION) {
+                // Validações
+                if (nomeField.getText().trim().isEmpty()) {
+                    throw new IllegalArgumentException("Nome é obrigatório");
+                }
+
+                int quantidade = Integer.parseInt(quantidadeField.getText());
+                if (quantidade < 0) {
+                    throw new IllegalArgumentException("Quantidade não pode ser negativa");
+                }
+
+                int usuarioId = Integer.parseInt(usuarioIdField.getText());
+
+                // Verificar se usuário existe
+                Optional<Usuario> usuario = usuarioService.buscarUsuarioPorId(usuarioId);
+                if (usuario.isEmpty()) {
+                    throw new IllegalArgumentException("Usuário com ID " + usuarioId + " não encontrado");
+                }
+
+                Item itemAtualizado = new Item();
+                itemAtualizado.setNome(nomeField.getText().trim());
+                itemAtualizado.setDescricao(descricaoField.getText().trim());
+                itemAtualizado.setCategoria(categoriaField.getText().trim());
+                itemAtualizado.setQuantidade(quantidade);
+                itemAtualizado.setLocalizacao(localizacaoField.getText().trim());
+                itemAtualizado.setUsuarioEntradaId(usuarioId);
+
+                boolean sucesso = itemService.atualizarItem(id, itemAtualizado);
+                if (sucesso) {
+                    JOptionPane.showMessageDialog(this, "Item atualizado com sucesso!");
+                    carregarDados();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao atualizar item.");
+                }
             }
 
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Valor inválido!");
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao retirar produto: " + ex.getMessage());
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro de banco de dados: " + e.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    e.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void retirarItem() {
+        int linha = tabelaEstoque.getSelectedRow();
+        if (linha == -1) {
+            JOptionPane.showMessageDialog(this,
+                    "Selecione um item para retirar!",
+                    "Aviso",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int id = (Integer) modelo.getValueAt(linha, 0);
+        String nomeItem = (String) modelo.getValueAt(linha, 1);
+        int quantidadeAtual = (Integer) modelo.getValueAt(linha, 4);
+
+        JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+        JTextField quantidadeField = new JTextField();
+        JTextField usuarioIdField = new JTextField();
+
+        panel.add(new JLabel("Quantidade a retirar:"));
+        panel.add(quantidadeField);
+        panel.add(new JLabel("ID Usuário que retirou:*"));
+        panel.add(usuarioIdField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel,
+                "Retirar Item: " + nomeItem,
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                int quantidadeRetirar = Integer.parseInt(quantidadeField.getText());
+                if (quantidadeRetirar <= 0 || quantidadeRetirar > quantidadeAtual) {
+                    throw new IllegalArgumentException("Quantidade inválida para retirada");
+                }
+
+                int usuarioId = Integer.parseInt(usuarioIdField.getText());
+
+                // Verificar se usuário existe
+                Optional<Usuario> usuario = usuarioService.buscarUsuarioPorId(usuarioId);
+                if (usuario.isEmpty()) {
+                    throw new IllegalArgumentException("Usuário com ID " + usuarioId + " não encontrado");
+                }
+
+                boolean sucesso = itemService.retirarItem(id, usuarioId, quantidadeRetirar);
+                if (sucesso) {
+                    JOptionPane.showMessageDialog(this,
+                            "Retirada de " + quantidadeRetirar + " unidades registrada com sucesso!");
+                    carregarDados();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao registrar retirada.");
+                }
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Por favor, insira valores numéricos válidos.",
+                        "Erro de Formato",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Erro de banco de dados: " + e.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void deletarItem() {
+        int linha = tabelaEstoque.getSelectedRow();
+        if (linha == -1) {
+            JOptionPane.showMessageDialog(this,
+                    "Selecione um item para deletar!",
+                    "Aviso",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int id = (Integer) modelo.getValueAt(linha, 0);
+        String nomeItem = (String) modelo.getValueAt(linha, 1);
+
+        // Solicitar o ID do usuário que está realizando a exclusão
+        String usuarioIdStr = JOptionPane.showInputDialog(this,
+                "Informe o ID do usuário que está realizando a exclusão:",
+                "Confirmação de Usuário",
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (usuarioIdStr == null || usuarioIdStr.trim().isEmpty()) {
+            return; // Usuário cancelou a operação
+        }
+
+        try {
+            int usuarioId = Integer.parseInt(usuarioIdStr);
+
+            // Verificar se o usuário existe
+            Optional<Usuario> usuario = usuarioService.buscarUsuarioPorId(usuarioId);
+            if (usuario.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Usuário com ID " + usuarioId + " não encontrado!",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Tem certeza que deseja deletar o item '" + nomeItem + "'?\n" +
+                            "Usuário responsável: " + usuario.get().getNome(),
+                    "Confirmar Exclusão",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                boolean sucesso = itemService.deletarItem(id, usuarioId);
+                if (sucesso) {
+                    JOptionPane.showMessageDialog(this, "Item deletado com sucesso!");
+                    carregarDados();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao deletar item.");
+                }
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Por favor, insira um ID de usuário válido.",
+                    "Erro de Formato",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro de banco de dados: " + e.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Método auxiliar para buscar usuário (você precisa implementar no UsuarioService)
+    private Optional<Usuario> buscarUsuarioPorId(int id) {
+        try {
+            return usuarioService.buscarUsuarioPorId(id);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao buscar usuário: " + e.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            return Optional.empty();
         }
     }
 }

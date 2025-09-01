@@ -6,75 +6,152 @@ import org.example.domain.Usuario;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class UsuarioDao {
 
-    // 🔹 Criar novo usuário
-    public void salvar(Usuario usuario) throws SQLException {
-        String sql = "INSERT INTO usuarios (nome, email) VALUES (?, ?)";
+    private static final String INSERT_SQL = "INSERT INTO usuarios (nome, email) VALUES (?, ?)";
+    private static final String SELECT_ALL_SQL = "SELECT id, nome, email FROM usuarios ORDER BY nome";
+    private static final String SELECT_BY_ID_SQL = "SELECT id, nome, email FROM usuarios WHERE id = ?";
+    private static final String SELECT_BY_EMAIL_SQL = "SELECT id, nome, email FROM usuarios WHERE email = ?";
+    private static final String SELECT_BY_CREDENTIALS_SQL = "SELECT id, nome, email FROM usuarios WHERE nome = ? AND email = ?";
+    private static final String UPDATE_SQL = "UPDATE usuarios SET nome = ?, email = ? WHERE id = ?";
+    private static final String DELETE_SQL = "DELETE FROM usuarios WHERE id = ?";
+    private static final String EXISTS_BY_EMAIL_SQL = "SELECT 1 FROM usuarios WHERE email = ?";
+
+    // 🔹 Criar novo usuário e retornar o ID
+    public int salvar(Usuario usuario) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setString(1, usuario.getNome());
             stmt.setString(2, usuario.getEmail());
-            stmt.executeUpdate();
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Falha ao criar usuário, nenhuma linha afetada.");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Falha ao criar usuário, nenhum ID obtido.");
+                }
+            }
         }
     }
 
     // 🔹 Listar todos os usuários
     public List<Usuario> listarTodos() throws SQLException {
         List<Usuario> usuarios = new ArrayList<>();
-        String sql = "SELECT id, nome, email FROM usuarios";
+
         try (Connection conn = DatabaseConnectionFactory.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(SELECT_ALL_SQL);
+             ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
-                Usuario u = new Usuario();
-                u.setNome(rs.getString("nome"));
-                u.setEmail(rs.getString("email"));
-                usuarios.add(u);
+                usuarios.add(mapearResultSetParaUsuario(rs));
             }
         }
         return usuarios;
     }
 
-    // 🔹 Deletar usuário pelo nome e email
-    public boolean deletar(String nome, String email) throws SQLException {
-        String sql = "DELETE FROM usuarios WHERE nome = ? AND email = ?";
+    // 🔹 Buscar usuário por ID
+    public Optional<Usuario> buscarPorId(int id) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, nome);
-            stmt.setString(2, email);
-            int rows = stmt.executeUpdate();
-            return rows > 0; // true se algum usuário foi deletado
+             PreparedStatement stmt = conn.prepareStatement(SELECT_BY_ID_SQL)) {
+
+            stmt.setInt(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapearResultSetParaUsuario(rs));
+                }
+                return Optional.empty();
+            }
         }
     }
 
-    // 🔹 Modificar usuário (atualizar nome e email)
-    public boolean modificar(String nomeAtual, String emailAtual, String novoNome, String novoEmail) throws SQLException {
-        String sql = "UPDATE usuarios SET nome = ?, email = ? WHERE nome = ? AND email = ?";
+    // 🔹 Buscar usuário por email
+    public Optional<Usuario> buscarPorEmail(String email) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, novoNome);
-            stmt.setString(2, novoEmail);
-            stmt.setString(3, nomeAtual);
-            stmt.setString(4, emailAtual);
-            int rows = stmt.executeUpdate();
-            return rows > 0; // true se algum usuário foi atualizado
+             PreparedStatement stmt = conn.prepareStatement(SELECT_BY_EMAIL_SQL)) {
+
+            stmt.setString(1, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapearResultSetParaUsuario(rs));
+                }
+                return Optional.empty();
+            }
         }
     }
-    public boolean buscar(String nome, String email) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM usuarios WHERE nome = ? AND email = ?";
+
+    // 🔹 Verificar se usuário existe por credenciais
+    public Optional<Usuario> buscarPorCredenciais(String nome, String email) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(SELECT_BY_CREDENTIALS_SQL)) {
+
             stmt.setString(1, nome);
             stmt.setString(2, email);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt(1) > 0; // retorna true se achou algum usuário
+                    return Optional.of(mapearResultSetParaUsuario(rs));
                 }
+                return Optional.empty();
             }
         }
-        return false;
+    }
+
+    // 🔹 Verificar se email já existe
+    public boolean existePorEmail(String email) throws SQLException {
+        try (Connection conn = DatabaseConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(EXISTS_BY_EMAIL_SQL)) {
+
+            stmt.setString(1, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    // 🔹 Atualizar usuário
+    public boolean atualizar(Usuario usuario) throws SQLException {
+        try (Connection conn = DatabaseConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(UPDATE_SQL)) {
+
+            stmt.setString(1, usuario.getNome());
+            stmt.setString(2, usuario.getEmail());
+
+
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        }
+    }
+
+    // 🔹 Deletar usuário por ID
+    public boolean deletar(int id) throws SQLException {
+        try (Connection conn = DatabaseConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(DELETE_SQL)) {
+
+            stmt.setInt(1, id);
+
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        }
+    }
+
+    // Método auxiliar para mapear ResultSet para Usuario
+    private Usuario mapearResultSetParaUsuario(ResultSet rs) throws SQLException {
+        Usuario usuario = new Usuario();
+        usuario.setId(rs.getInt("id"));
+        usuario.setNome(rs.getString("nome"));
+        usuario.setEmail(rs.getString("email"));
+        return usuario;
     }
 }

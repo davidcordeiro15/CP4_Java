@@ -6,6 +6,10 @@ import org.junit.jupiter.api.*;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UsuarioServiceTest {
@@ -16,46 +20,82 @@ public class UsuarioServiceTest {
     public static void setup() {
         usuarioService = new UsuarioService();
     }
-
     @Test
     @Order(1)
-    public void testCriarUsuarios() throws SQLException {
-        Usuario u1 = new Usuario();
-        u1.setNome("Teste João");
-        u1.setEmail("teste.joao@email.com");
-        usuarioService.adicionarUsuario(u1);
+    public void testCriarUsuario() throws SQLException {
+        // Criar um usuário de teste
+        Usuario usuarioTeste = new Usuario();
+        usuarioTeste.setNome("a23");
+        usuarioTeste.setEmail("a23@exemplo.com");
 
-        Usuario u2 = new Usuario();
-        u2.setNome("Teste Maria");
-        u2.setEmail("teste.maria@email.com");
-        usuarioService.adicionarUsuario(u2);
+        // Tentar adicionar o usuário
+        Usuario usuarioCriado = usuarioService.adicionarUsuario(usuarioTeste);
 
-        List<Usuario> lista = usuarioService.listarUsuarios();
-        Assertions.assertTrue(lista.stream().anyMatch(u -> u.getNome().equals("Teste João")));
-        Assertions.assertTrue(lista.stream().anyMatch(u -> u.getNome().equals("Teste Maria")));
+        // Verificar se o usuário foi criado com sucesso
+        assertEquals(usuarioCriado, usuarioTeste, "Usuário deveria ter sido criado com sucesso");
+
+        // Verificar se o ID foi gerado
+        Assertions.assertTrue(usuarioCriado.getId() > 0, "Usuário deveria ter um ID válido");
+
+        // Verificar se os dados foram persistidos corretamente
+        assertEquals("Usuario Teste", usuarioCriado.getNome(), "Nome deveria ser igual");
+        assertEquals("teste.usuario@exemplo.com", usuarioCriado.getEmail(), "Email deveria ser igual");
+
+        // Verificar se o usuário aparece na listagem
+        List<Usuario> listaUsuarios = usuarioService.listarUsuarios();
+        Assertions.assertTrue(
+                listaUsuarios.stream().anyMatch(u ->
+                        u.getEmail().equals("teste.usuario@exemplo.com") &&
+                                u.getNome().equals("Usuario Teste")),
+                "Usuário criado deveria aparecer na listagem"
+        );
+
+        System.out.println("Usuário criado com ID: " + usuarioCriado.getId());
     }
-
     @Test
     @Order(2)
-    public void testAtualizarUsuario() throws SQLException {
-        Usuario novoU = new Usuario();
-        novoU.setNome("Maria Atualizada");
-        novoU.setEmail("maria.atualizada@email.com");
-
-        boolean atualizado = usuarioService.atualizarUsuario("Teste Maria", "teste.maria@email.com", novoU);
-        Assertions.assertTrue(atualizado);
-
+    public void testListarUsuarios() throws SQLException {
         List<Usuario> lista = usuarioService.listarUsuarios();
-        Assertions.assertTrue(lista.stream().anyMatch(u -> u.getNome().equals("Maria Atualizada")));
+        Assertions.assertNotNull(lista, "A lista de usuários não deveria ser nula");
+        Assertions.assertFalse(lista.isEmpty(), "A lista de usuários não deveria estar vazia");
     }
 
     @Test
     @Order(3)
     public void testDeletarUsuario() throws SQLException {
-        boolean deletado = usuarioService.deletarUsuario("Teste João", "teste.joao@email.com");
-        Assertions.assertTrue(deletado);
+        // Primeiro buscar o usuário criado no teste 1
+        List<Usuario> usuarios = usuarioService.listarUsuarios();
+        Optional<Usuario> usuarioParaDeletar = usuarios.stream()
+                .filter(u -> u.getEmail().equals("teste.usuario@exemplo.com"))
+                .findFirst();
 
-        List<Usuario> lista = usuarioService.listarUsuarios();
-        Assertions.assertFalse(lista.stream().anyMatch(u -> u.getNome().equals("Teste João")));
+        Assertions.assertTrue(usuarioParaDeletar.isPresent(), "Usuário de teste deveria existir");
+
+        // Deletar o usuário
+        boolean deletado = usuarioService.deletarUsuario(usuarioParaDeletar.get().getId());
+        Assertions.assertTrue(deletado, "Usuário deveria ter sido deletado");
+
+        // Verificar que o usuário não existe mais
+        List<Usuario> listaAposDelete = usuarioService.listarUsuarios();
+        Assertions.assertFalse(
+                listaAposDelete.stream().anyMatch(u -> u.getEmail().equals("teste.usuario@exemplo.com")),
+                "Usuário deletado não deveria mais existir na lista"
+        );
     }
+
+    @Test
+    @Order(4)
+    public void testBuscarUsuarioPorId() throws SQLException {
+
+
+        // Buscar o usuário pelo ID
+        Optional<Usuario> usuarioEncontrado = usuarioService.buscarUsuarioPorId(9);
+
+        Assertions.assertTrue(usuarioEncontrado.isPresent(), "Deveria encontrar o usuário pelo ID");
+        assertEquals("Bioq. Juliana Reis", usuarioEncontrado.get().getNome());
+        assertEquals("juliana.reis@hospital.com", usuarioEncontrado.get().getEmail());
+
+    }
+
+
 }

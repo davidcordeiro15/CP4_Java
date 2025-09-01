@@ -27,12 +27,7 @@ public class Main {
 
         // Caso queira criar a tabela e inserir valores iniciais nela descomente a linha abaixo e rode o código
         //Exemplo: listar produtos
-        /*String sql = "SELECT e.id, e.nome, e.quantidade, e.data_entrada, e.data_retirada, " +
-                "u1.nome AS usuarioEntrada, " +
-                "u2.nome AS usuarioRetirada " +
-                "FROM estoque e " +
-                "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.id " +
-                "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id";
+        /*String sql = "ALTER TABLE estoque MODIFY usuarioRetirada VARCHAR2(100); ALTER TABLE estoque MODIFY usuarioEntrada VARCHAR2(100); ";
 
         QueryExecutor.executarSelect(sql);*/
 

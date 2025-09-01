@@ -5,19 +5,24 @@ import org.example.domain.Usuario;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class UsuarioService {
 
     private UsuarioDao usuarioDAO = new UsuarioDao();
 
-    // 🔹 Adicionar usuário
-    public Boolean  adicionarUsuario(Usuario usuario) throws SQLException {
+    // 🔹 Adicionar usuário com validação
+    public Usuario adicionarUsuario(Usuario usuario) throws SQLException {
+        // Verificar se email já existe
+
+
         try {
-            usuarioDAO.salvar(usuario);
-            return true;
-        } catch (Exception ex) {
-            System.out.println("Não foi possível adicionar o usuário ao banco: "  + ex);
-            return false;
+            int id = usuarioDAO.salvar(usuario);
+            usuario.setId(id);
+            return usuario;
+        } catch (SQLException ex) {
+            System.err.println("Erro ao adicionar usuário: " + ex.getMessage());
+            throw ex;
         }
     }
 
@@ -26,22 +31,50 @@ public class UsuarioService {
         return usuarioDAO.listarTodos();
     }
 
+    // 🔹 Buscar usuário por ID
+    public Optional<Usuario> buscarUsuarioPorId(int id) throws SQLException {
+        return usuarioDAO.buscarPorId(id);
+    }
+
+    // 🔹 Buscar usuário por email
+    public Optional<Usuario> buscarUsuarioPorEmail(String email) throws SQLException {
+        return usuarioDAO.buscarPorEmail(email);
+    }
+
+    // 🔹 Autenticar usuário
+    public Optional<Usuario> autenticarUsuario(String nome, String email) throws SQLException {
+        return usuarioDAO.buscarPorCredenciais(nome, email);
+    }
+
+    // 🔹 Verificar se usuário existe
+    public boolean existeUsuario(String nome, String email) throws SQLException {
+        return usuarioDAO.buscarPorCredenciais(nome, email).isPresent();
+    }
+
     // 🔹 Atualizar usuário
-    public boolean atualizarUsuario(String nomeAtual, String emailAtual, Usuario novoUsuario) throws SQLException {
-        return usuarioDAO.modificar(
-                nomeAtual,
-                emailAtual,
-                novoUsuario.getNome(),
-                novoUsuario.getEmail()
-        );
+    public boolean atualizarUsuario(Usuario usuario) throws SQLException {
+        // Verificar se o novo email já pertence a outro usuário
+        Optional<Usuario> usuarioComEmail = usuarioDAO.buscarPorEmail(usuario.getEmail());
+        if (usuarioComEmail.isPresent() && usuarioComEmail.get().getId() != usuario.getId()) {
+            return false; // Email já está em uso por outro usuário
+        }
+
+        return usuarioDAO.atualizar(usuario);
     }
 
-    // 🔹 Deletar usuário
-    public boolean deletarUsuario(String nome, String email) throws SQLException {
-        return usuarioDAO.deletar(nome, email);
-    }
-    public boolean buscarUsuario(String nome, String email) throws SQLException {
-        return usuarioDAO.buscar(nome, email); // esse buscar retorna true se o user existe
+    // 🔹 Deletar usuário por ID
+    public boolean deletarUsuario(int id) throws SQLException {
+        return usuarioDAO.deletar(id);
     }
 
+    // 🔹 Verificar se email está disponível
+    public boolean emailDisponivel(String email) throws SQLException {
+        return !usuarioDAO.existePorEmail(email);
+    }
+
+    // 🔹 Validar dados do usuário
+    public boolean validarUsuario(Usuario usuario) {
+        return usuario.getNome() != null && !usuario.getNome().trim().isEmpty() &&
+                usuario.getEmail() != null && !usuario.getEmail().trim().isEmpty();
+    }
 }
