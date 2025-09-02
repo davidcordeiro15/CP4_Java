@@ -16,7 +16,7 @@ public class UsuarioDao {
     private static final String SELECT_BY_EMAIL_SQL = "SELECT id, nome, email FROM usuarios WHERE email = ?";
     private static final String SELECT_BY_CREDENTIALS_SQL = "SELECT id, nome, email FROM usuarios WHERE nome = ? AND email = ?";
     private static final String UPDATE_SQL = "UPDATE usuarios SET nome = ?, email = ? WHERE id = ?";
-    private static final String DELETE_SQL = "DELETE FROM usuarios WHERE id = ?";
+    private static final String DELETE_SQL = "DELETE FROM usuarios WHERE email = ?";
     private static final String EXISTS_BY_EMAIL_SQL = "SELECT 1 FROM usuarios WHERE email = ?";
 
     // 🔹 Criar novo usuário e retornar o ID
@@ -58,24 +58,8 @@ public class UsuarioDao {
         return usuarios;
     }
 
-    // 🔹 Buscar usuário por ID
-    public Optional<Usuario> buscarPorId(int id) throws SQLException {
-        try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SELECT_BY_ID_SQL)) {
-
-            stmt.setInt(1, id);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(mapearResultSetParaUsuario(rs));
-                }
-                return Optional.empty();
-            }
-        }
-    }
-
     // 🔹 Buscar usuário por email
-    public Optional<Usuario> buscarPorEmail(String email) throws SQLException {
+    public Usuario buscarPorEmail(String email) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SELECT_BY_EMAIL_SQL)) {
 
@@ -83,15 +67,17 @@ public class UsuarioDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapearResultSetParaUsuario(rs));
+                    return mapearResultSetParaUsuario(rs);
                 }
-                return Optional.empty();
+                return null;
             }
         }
     }
 
+
+
     // 🔹 Verificar se usuário existe por credenciais
-    public Optional<Usuario> buscarPorCredenciais(String nome, String email) throws SQLException {
+    public Usuario buscarPorCredenciais(String nome, String email) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SELECT_BY_CREDENTIALS_SQL)) {
 
@@ -100,9 +86,9 @@ public class UsuarioDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapearResultSetParaUsuario(rs));
+                    return mapearResultSetParaUsuario(rs);
                 }
-                return Optional.empty();
+                return null;
             }
         }
     }
@@ -135,11 +121,11 @@ public class UsuarioDao {
     }
 
     // 🔹 Deletar usuário por ID
-    public boolean deletar(int id) throws SQLException {
+    public boolean deletar(String email) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(DELETE_SQL)) {
 
-            stmt.setInt(1, id);
+            stmt.setString(1, email);
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;

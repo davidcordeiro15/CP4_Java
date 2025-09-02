@@ -20,8 +20,8 @@ public class ItemDao {
                     "e.data_entrada, e.data_retirada, e.usuarioEntrada, e.usuarioRetirada, " +
                     "u1.nome AS usuarioEntradaNome, u2.nome AS usuarioRetiradaNome " +
                     "FROM estoque e " +
-                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.id " +
-                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id " +
+                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.email " +
+                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.email " +
                     "ORDER BY e.data_entrada DESC";
 
     private static final String SELECT_BY_ID_SQL =
@@ -29,13 +29,13 @@ public class ItemDao {
                     "e.data_entrada, e.data_retirada, e.usuarioEntrada, e.usuarioRetirada, " +
                     "u1.nome AS usuarioEntradaNome, u2.nome AS usuarioRetiradaNome " +
                     "FROM estoque e " +
-                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.id " +
-                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id " +
+                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.email " +
+                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.email " +
                     "WHERE e.id = ?";
 
     private static final String UPDATE_SQL =
             "UPDATE estoque SET nome = ?, descricao = ?, categoria = ?, quantidade = ?, " +
-                    "localizacao = ?, data_entrada = ?, usuarioEntrada = ? WHERE id = ?";
+                    "localizacao = ?, data_entrada = ?, usuarioEntrada = ? WHERE email = ?";
 
     private static final String RETIRAR_ITEM_SQL =
             "UPDATE estoque SET usuarioRetirada = ?, data_retirada = CURRENT_TIMESTAMP WHERE id = ?";
@@ -48,8 +48,8 @@ public class ItemDao {
                     "e.data_entrada, e.data_retirada, e.usuarioEntrada, e.usuarioRetirada, " +
                     "u1.nome AS usuarioEntradaNome, u2.nome AS usuarioRetiradaNome " +
                     "FROM estoque e " +
-                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.id " +
-                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id " +
+                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.email " +
+                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.email" +
                     "WHERE LOWER(e.nome) LIKE LOWER(?) ORDER BY e.nome";
 
     // Criar (INSERT) - Retorna o ID do item criado
@@ -63,7 +63,7 @@ public class ItemDao {
             stmt.setInt(4, item.getQuantidade());
             stmt.setString(5, item.getLocalizacao());
             stmt.setTimestamp(6, new Timestamp(item.getDataEntrada().getTime()));
-            stmt.setInt(7, item.getUsuarioEntradaId());
+            stmt.setString(7, item.getUsuarioEntradaEmail());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -143,7 +143,7 @@ public class ItemDao {
             stmt.setInt(4, item.getQuantidade());
             stmt.setString(5, item.getLocalizacao());
             stmt.setTimestamp(6, new Timestamp(item.getDataEntrada().getTime()));
-            stmt.setInt(7, item.getUsuarioEntradaId());
+            stmt.setString(7, item.getUsuarioEntradaEmail());
             stmt.setInt(8, id);
 
             int affectedRows = stmt.executeUpdate();
@@ -152,11 +152,11 @@ public class ItemDao {
     }
 
     // Retirar item (marcar saída)
-    public boolean retirarItem(int idItem, int idUsuario) throws SQLException {
+    public boolean retirarItem(int idItem, String emailUsuario) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(RETIRAR_ITEM_SQL)) {
 
-            stmt.setInt(1, idUsuario);
+            stmt.setString(1, emailUsuario);
             stmt.setInt(2, idItem);
 
             int affectedRows = stmt.executeUpdate();
@@ -187,7 +187,7 @@ public class ItemDao {
         item.setLocalizacao(rs.getString("localizacao"));
         item.setDataEntrada(rs.getDate("data_entrada"));
         item.setDataRetirada(rs.getDate("data_retirada"));
-        item.setUsuarioEntradaId(rs.getInt("usuarioEntrada"));
+        item.setUsuarioEntradaEmail(rs.getString("usuarioEntrada"));
         item.setUsuarioRetiradaId(rs.getInt("usuarioRetirada"));
 
         // Mapear objetos Usuario se existirem

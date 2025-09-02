@@ -39,7 +39,7 @@ public class ItemServiceTest {
         itemOriginal.setCategoria("Teste");
         itemOriginal.setLocalizacao("Prateleira T1");
         itemOriginal.setDataEntrada(new Date(System.currentTimeMillis()));
-        itemOriginal.setUsuarioEntradaId(usuarioEntrada.getId());
+        itemOriginal.setUsuarioEntradaEmail(usuarioEntrada.getEmail());
 
         // Adiciona o item ao banco
         boolean itemAdicionado = itemService.adicionarItem(itemOriginal);
@@ -60,7 +60,7 @@ public class ItemServiceTest {
         itemAtualizado.setCategoria("Teste Atualizado");
         itemAtualizado.setLocalizacao("Prateleira T2");
         itemAtualizado.setDataEntrada(new Date(System.currentTimeMillis()));
-        itemAtualizado.setUsuarioEntradaId(usuarioEntrada.getId());
+        itemAtualizado.setUsuarioEntradaEmail(usuarioEntrada.getEmail());
 
         // Executa a atualização
         boolean atualizacaoSucesso = itemService.atualizarItem(itemId, itemAtualizado);
@@ -99,7 +99,7 @@ public class ItemServiceTest {
         item.setCategoria("Teste");
         item.setLocalizacao("Local Teste");
         item.setDataEntrada(new Date(System.currentTimeMillis()));
-        item.setUsuarioEntradaId(usuario.getId());
+        item.setUsuarioEntradaEmail(usuario.getNome());
 
         boolean resultado = itemService.adicionarItem(item);
         Assertions.assertTrue(resultado, "Deveria adicionar item com usuário válido");
@@ -107,6 +107,6 @@ public class ItemServiceTest {
         // Verificar se foi realmente adicionado
         List<Item> itensEncontrados = itemService.buscarItensPorNome("Novo Item de Teste");
         Assertions.assertFalse(itensEncontrados.isEmpty(), "Deve encontrar o item adicionado");
-        Assertions.assertEquals(usuario.getId(), itensEncontrados.get(0).getUsuarioEntradaId());
+        Assertions.assertEquals(usuario.getId(), itensEncontrados.get(0).getUsuarioEntradaEmail());
     }
 }

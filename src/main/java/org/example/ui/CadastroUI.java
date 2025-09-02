@@ -131,7 +131,7 @@ public class CadastroUI extends JFrame {
         try {
             Usuario usuarioCriado = usuarioService.adicionarUsuario(user);
 
-            if (usuarioCriado != null) {
+            if (!usuarioCriado.getNome().isEmpty()) {
                 mostrarSucesso("Usuário cadastrado com sucesso!\nID: " + usuarioCriado.getId());
 
                 int opcao = JOptionPane.showConfirmDialog(this,

@@ -30,14 +30,14 @@ public class ItemService {
         return itemDAO.modificar(id, novoItem);
     }
 
-    public boolean deletarItem(int id, int idUsuarioRetirada) throws SQLException {
-        return itemDAO.retirarItem(id, idUsuarioRetirada);
+    public boolean deletarItem(int id, String EmailUsuarioRetirada) throws SQLException {
+        return itemDAO.retirarItem(id, EmailUsuarioRetirada);
     }
 
     public List<Item> buscarItensPorNome(String nome) throws SQLException {
         return itemDAO.buscarPorNome(nome);
     }
-    public boolean retirarItem(int idItem, int idUsuario, int quantidade) throws SQLException {
+    public boolean retirarItem(int idItem, String emailUsuario, int quantidade) throws SQLException {
         // Implementação para retirar quantidade específica
         Item itemOptional = itemDAO.buscarPorId(idItem);
         if (itemOptional == null) {

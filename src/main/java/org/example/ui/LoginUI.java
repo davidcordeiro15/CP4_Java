@@ -86,11 +86,11 @@ public class LoginUI extends JFrame {
         }
 
         try {
-            Optional<Usuario> usuario = usuarioService.autenticarUsuario(nome, email);
+            Usuario usuario = usuarioService.autenticarUsuario(nome, email);
 
-            if (usuario.isPresent()) {
-                mostrarSucesso("Login realizado com sucesso!\nBem-vindo, " + usuario.get().getNome() + "!");
-                abrirEstoque(usuario.get());
+            if (!usuario.getNome().isEmpty()) {
+                mostrarSucesso("Login realizado com sucesso!\nBem-vindo, " + usuario.getNome() + "!");
+                abrirEstoque(usuario);
             } else {
                 int opcao = JOptionPane.showConfirmDialog(this,
                         "Usuário não encontrado. Deseja criar uma nova conta?",
