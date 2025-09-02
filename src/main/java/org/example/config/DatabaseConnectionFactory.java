@@ -22,7 +22,7 @@ public class DatabaseConnectionFactory {
         Properties props = new Properties();
         props.setProperty("user", user);
         props.setProperty("password", pass);
-
+        System.out.println("Conexão com banco de dados realizada com sucesso!");
         return DriverManager.getConnection(url, props);
     }
 }

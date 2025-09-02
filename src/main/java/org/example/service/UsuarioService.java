@@ -16,12 +16,18 @@ public class UsuarioService {
         // Verificar se email já existe
 
         try {
-            int id = usuarioDAO.salvar(usuario);
-            usuario.setId(id);
-            return usuario;
+            if (!usuarioDAO.existePorEmail(usuario.getEmail())) {
+                int id = usuarioDAO.salvar(usuario);
+                usuario.setId(id);
+                return usuario;
+            }
+            return null;
+
         } catch (SQLException ex) {
             System.err.println("Erro ao adicionar usuário: " + ex.getMessage());
-            throw ex;
+
+                throw ex;
+
         }
     }
 
@@ -38,7 +44,15 @@ public class UsuarioService {
 
     // 🔹 Autenticar usuário
     public Usuario autenticarUsuario(String nome, String email) throws SQLException {
-        return usuarioDAO.buscarPorCredenciais(nome, email);
+        Usuario user = usuarioDAO.buscarPorCredenciais(nome, email);
+        if (user == null) {
+            Usuario usuarioInvalido = new Usuario();
+            usuarioInvalido.setId(-1); // ID negativo indica usuário inválido
+            usuarioInvalido.setNome("Usuário não encontrado");
+            usuarioInvalido.setEmail("");
+            return usuarioInvalido;
+        }
+        return user;
     }
 
     // 🔹 Verificar se usuário existe

@@ -9,6 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/*
+* Guardar imagem
+* - nome, id, pathImg(base64),
+* */
+
 public class ItemDao {
 
     private static final String INSERT_SQL =
@@ -16,26 +21,45 @@ public class ItemDao {
                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_ALL_SQL =
+                "\n" +
+                        "SELECT \n" +
+                        "    e.id, \n" +
+                        "    e.nome, \n" +
+                        "    e.descricao, \n" +
+                        "    e.categoria, \n" +
+                        "    e.quantidade, \n" +
+                        "    e.localizacao,\n" +
+                        "    e.data_entrada, \n" +
+                        "    e.data_retirada, \n" +
+                        "    e.usuarioEntrada, \n" +
+                        "    e.usuarioRetirada, \n" +
+                        "    u1.nome AS usuarioEntradaNome, \n" +
+                        "    u2.nome AS usuarioRetiradaNome \n" +
+                        "FROM estoque e \n" +
+                        "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.id  -- ✅ JOIN pelo ID\n" +
+                        "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id  -- ✅ JOIN pelo ID\n" +
+                        "ORDER BY e.data_entrada DESC";
+
+    private static final String SELECT_BY_EMAIL_SQL =
             "SELECT e.id, e.nome, e.descricao, e.categoria, e.quantidade, e.localizacao, " +
                     "e.data_entrada, e.data_retirada, e.usuarioEntrada, e.usuarioRetirada, " +
                     "u1.nome AS usuarioEntradaNome, u2.nome AS usuarioRetiradaNome " +
                     "FROM estoque e " +
                     "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.email " +
                     "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.email " +
-                    "ORDER BY e.data_entrada DESC";
-
+                    "WHERE e.email = ?";
     private static final String SELECT_BY_ID_SQL =
             "SELECT e.id, e.nome, e.descricao, e.categoria, e.quantidade, e.localizacao, " +
                     "e.data_entrada, e.data_retirada, e.usuarioEntrada, e.usuarioRetirada, " +
                     "u1.nome AS usuarioEntradaNome, u2.nome AS usuarioRetiradaNome " +
                     "FROM estoque e " +
-                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.email " +
-                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.email " +
+                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.id " +
+                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id " +
                     "WHERE e.id = ?";
 
     private static final String UPDATE_SQL =
             "UPDATE estoque SET nome = ?, descricao = ?, categoria = ?, quantidade = ?, " +
-                    "localizacao = ?, data_entrada = ?, usuarioEntrada = ? WHERE email = ?";
+                    "localizacao = ?, data_entrada = ?, usuarioEntrada = ? WHERE id = ?";
 
     private static final String RETIRAR_ITEM_SQL =
             "UPDATE estoque SET usuarioRetirada = ?, data_retirada = CURRENT_TIMESTAMP WHERE id = ?";
@@ -97,7 +121,7 @@ public class ItemDao {
         return itens;
     }
 
-    // Buscar item por ID
+    // Buscar item por I
     public Item buscarPorId(int id) throws SQLException {
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SELECT_BY_ID_SQL)) {

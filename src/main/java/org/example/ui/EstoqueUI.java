@@ -228,13 +228,13 @@ public class EstoqueUI extends JFrame {
         int id = (Integer) modelo.getValueAt(linha, 0);
 
         try {
-            Optional<Item> itemOptional = Optional.ofNullable(itemService.buscarItemPorId(id));
-            if (itemOptional.isEmpty()) {
+            Item itemOptional = itemService.buscarItemPorId(id);
+            if (itemOptional.getNome().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Item não encontrado!");
                 return;
             }
 
-            Item item = itemOptional.get();
+            Item item = itemOptional;
             JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
 
             JTextField nomeField = new JTextField(item.getNome());
@@ -254,7 +254,7 @@ public class EstoqueUI extends JFrame {
             panel.add(quantidadeField);
             panel.add(new JLabel("Localização:"));
             panel.add(localizacaoField);
-            panel.add(new JLabel("ID Usuário Entrada:*"));
+            panel.add(new JLabel("Email Usuário Entrada:*"));
             panel.add(usuarioEmailField);
 
             int result = JOptionPane.showConfirmDialog(this, panel, "Editar Item - ID: " + id,
@@ -287,7 +287,7 @@ public class EstoqueUI extends JFrame {
                 itemAtualizado.setLocalizacao(localizacaoField.getText().trim());
                 itemAtualizado.setUsuarioEntradaEmail(usuarioEmail);
 
-                boolean sucesso = itemService.atualizarItem(id, itemAtualizado);
+                boolean sucesso = itemService.atualizarItem(item.getId(), itemAtualizado);
                 if (sucesso) {
                     JOptionPane.showMessageDialog(this, "Item atualizado com sucesso!");
                     carregarDados();

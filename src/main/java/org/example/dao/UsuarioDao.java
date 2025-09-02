@@ -77,21 +77,23 @@ public class UsuarioDao {
 
 
     // 🔹 Verificar se usuário existe por credenciais
-    public Usuario buscarPorCredenciais(String nome, String email) throws SQLException {
-        try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SELECT_BY_CREDENTIALS_SQL)) {
+        public Usuario buscarPorCredenciais(String nome, String email) throws SQLException {
+            try (Connection conn = DatabaseConnectionFactory.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(SELECT_BY_CREDENTIALS_SQL)) {
 
-            stmt.setString(1, nome);
-            stmt.setString(2, email);
+                stmt.setString(1, nome);
+                stmt.setString(2, email);
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapearResultSetParaUsuario(rs);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return mapearResultSetParaUsuario(rs);
+                    }
                 }
-                return null;
+            } catch (Exception e) {
+                throw new RuntimeException("Usuário não encontrado com nome: " + nome + " e email: " + email);
             }
+            return null;
         }
-    }
 
     // 🔹 Verificar se email já existe
     public boolean existePorEmail(String email) throws SQLException {
@@ -134,10 +136,12 @@ public class UsuarioDao {
 
     // Método auxiliar para mapear ResultSet para Usuario
     private Usuario mapearResultSetParaUsuario(ResultSet rs) throws SQLException {
+        System.out.println(rs);
         Usuario usuario = new Usuario();
         usuario.setId(rs.getInt("id"));
         usuario.setNome(rs.getString("nome"));
         usuario.setEmail(rs.getString("email"));
+
         return usuario;
     }
 }
