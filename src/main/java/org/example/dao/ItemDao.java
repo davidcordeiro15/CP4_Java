@@ -7,12 +7,9 @@ import org.example.domain.Usuario;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-/*
-* Guardar imagem
-* - nome, id, pathImg(base64),
-* */
+
+
 
 public class ItemDao {
 
@@ -40,14 +37,7 @@ public class ItemDao {
                         "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.id  -- ✅ JOIN pelo ID\n" +
                         "ORDER BY e.data_entrada DESC";
 
-    private static final String SELECT_BY_EMAIL_SQL =
-            "SELECT e.id, e.nome, e.descricao, e.categoria, e.quantidade, e.localizacao, " +
-                    "e.data_entrada, e.data_retirada, e.usuarioEntrada, e.usuarioRetirada, " +
-                    "u1.nome AS usuarioEntradaNome, u2.nome AS usuarioRetiradaNome " +
-                    "FROM estoque e " +
-                    "LEFT JOIN usuarios u1 ON e.usuarioEntrada = u1.email " +
-                    "LEFT JOIN usuarios u2 ON e.usuarioRetirada = u2.email " +
-                    "WHERE e.email = ?";
+
     private static final String SELECT_BY_ID_SQL =
             "SELECT e.id, e.nome, e.descricao, e.categoria, e.quantidade, e.localizacao, " +
                     "e.data_entrada, e.data_retirada, e.usuarioEntrada, e.usuarioRetirada, " +
@@ -59,10 +49,9 @@ public class ItemDao {
 
     private static final String UPDATE_SQL =
             "UPDATE estoque SET nome = ?, descricao = ?, categoria = ?, quantidade = ?, " +
-                    "localizacao = ?, data_entrada = ?, usuarioEntrada = ? WHERE id = ?";
+                    "localizacao = ?, usuarioEntrada = ? WHERE id = ?";
 
-    private static final String RETIRAR_ITEM_SQL =
-            "UPDATE estoque SET usuarioRetirada = ?, data_retirada = CURRENT_TIMESTAMP WHERE id = ?";
+
 
     private static final String DELETE_SQL =
             "DELETE FROM estoque WHERE id = ?";
@@ -87,7 +76,7 @@ public class ItemDao {
             stmt.setInt(4, item.getQuantidade());
             stmt.setString(5, item.getLocalizacao());
             stmt.setTimestamp(6, new Timestamp(item.getDataEntrada().getTime()));
-            stmt.setString(7, item.getUsuarioEntradaEmail());
+            stmt.setInt(7, item.getUsuarioEntradaId());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -166,27 +155,14 @@ public class ItemDao {
             stmt.setString(3, item.getCategoria());
             stmt.setInt(4, item.getQuantidade());
             stmt.setString(5, item.getLocalizacao());
-            stmt.setTimestamp(6, new Timestamp(item.getDataEntrada().getTime()));
-            stmt.setString(7, item.getUsuarioEntradaEmail());
-            stmt.setInt(8, id);
+            stmt.setInt(6, item.getUsuarioEntradaId());
+            stmt.setInt(7, id);
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;
         }
     }
 
-    // Retirar item (marcar saída)
-    public boolean retirarItem(int idItem, String emailUsuario) throws SQLException {
-        try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(RETIRAR_ITEM_SQL)) {
-
-            stmt.setString(1, emailUsuario);
-            stmt.setInt(2, idItem);
-
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
-        }
-    }
 
     // Deletar item
     public boolean deletar(int idItem) throws SQLException {
@@ -211,7 +187,7 @@ public class ItemDao {
         item.setLocalizacao(rs.getString("localizacao"));
         item.setDataEntrada(rs.getDate("data_entrada"));
         item.setDataRetirada(rs.getDate("data_retirada"));
-        item.setUsuarioEntradaEmail(rs.getString("usuarioEntrada"));
+        item.setUsuarioEntradaId(rs.getInt("usuarioEntrada"));
         item.setUsuarioRetiradaId(rs.getInt("usuarioRetirada"));
 
         // Mapear objetos Usuario se existirem
@@ -235,34 +211,22 @@ public class ItemDao {
     }
 
     // Método para atualizar apenas a quantidade
-    public boolean atualizarQuantidade(int idItem, int novaQuantidade) throws SQLException {
-        String sql = "UPDATE estoque SET quantidade = ? WHERE id = ?";
+    public boolean atualizarQuantidade(int idItem, int idUsuario, int novaQuantidade) throws SQLException {
+        String sql = "UPDATE estoque SET quantidade = ?, data_retirada = ?, usuarioRetirada = ? WHERE id = ?";
 
         try (Connection conn = DatabaseConnectionFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, novaQuantidade);
             stmt.setInt(2, idItem);
+            stmt.setTimestamp(3, new java.sql.Timestamp(System.currentTimeMillis()));
+            stmt.setInt(4, idUsuario);
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;
         }
     }
 
-    // Método para verificar se item existe
-    public boolean existeItem(int id) throws SQLException {
-        String sql = "SELECT 1 FROM estoque WHERE id = ?";
-
-        try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
-        }
-    }
 
     // Método para buscar itens por categoria
     public List<Item> buscarPorCategoria(String categoria) throws SQLException {

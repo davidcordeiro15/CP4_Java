@@ -10,7 +10,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
+
 
 public class EstoqueUI extends JFrame {
     private JTable tabelaEstoque;
@@ -189,8 +189,8 @@ public class EstoqueUI extends JFrame {
                 item.setCategoria(categoriaField.getText().trim());
                 item.setQuantidade(quantidade);
                 item.setLocalizacao(localizacaoField.getText().trim());
-                item.setUsuarioEntradaEmail(usuarioId);
-
+                item.setUsuarioEntradaId(usuario.getId());
+                item.setDataEntrada(new java.sql.Date(System.currentTimeMillis()));
                 boolean sucesso = itemService.adicionarItem(item);
                 if (sucesso) {
                     JOptionPane.showMessageDialog(this, "Item adicionado com sucesso!");
@@ -237,12 +237,14 @@ public class EstoqueUI extends JFrame {
             Item item = itemOptional;
             JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
 
+            Usuario usuarioItem = usuarioService.buscarUsuarioPorId(item.getUsuarioEntradaId());
+
             JTextField nomeField = new JTextField(item.getNome());
             JTextField descricaoField = new JTextField(item.getDescricao());
             JTextField categoriaField = new JTextField(item.getCategoria());
             JTextField quantidadeField = new JTextField(String.valueOf(item.getQuantidade()));
             JTextField localizacaoField = new JTextField(item.getLocalizacao());
-            JTextField usuarioEmailField = new JTextField(String.valueOf(item.getUsuarioEntradaEmail()));
+            JTextField usuarioEmailField = new JTextField(String.valueOf(usuarioItem.getEmail()));
 
             panel.add(new JLabel("Nome:*"));
             panel.add(nomeField);
@@ -285,7 +287,7 @@ public class EstoqueUI extends JFrame {
                 itemAtualizado.setCategoria(categoriaField.getText().trim());
                 itemAtualizado.setQuantidade(quantidade);
                 itemAtualizado.setLocalizacao(localizacaoField.getText().trim());
-                itemAtualizado.setUsuarioEntradaEmail(usuarioEmail);
+                itemAtualizado.setUsuarioEntradaId(usuario.getId());
 
                 boolean sucesso = itemService.atualizarItem(item.getId(), itemAtualizado);
                 if (sucesso) {
@@ -329,7 +331,7 @@ public class EstoqueUI extends JFrame {
 
         panel.add(new JLabel("Quantidade a retirar:"));
         panel.add(quantidadeField);
-        panel.add(new JLabel("ID Usuário que retirou:*"));
+        panel.add(new JLabel("Email Usuário que retirou:*"));
         panel.add(usuarioEmailField);
 
         int result = JOptionPane.showConfirmDialog(this, panel,
@@ -351,7 +353,7 @@ public class EstoqueUI extends JFrame {
                     throw new IllegalArgumentException("Usuário com Email " + usuarioEmail + " não encontrado");
                 }
 
-                boolean sucesso = itemService.retirarItem(id, usuarioEmail, quantidadeRetirar);
+                boolean sucesso = itemService.retirarItem(id, usuario.getId(), quantidadeRetirar);
                 if (sucesso) {
                     JOptionPane.showMessageDialog(this,
                             "Retirada de " + quantidadeRetirar + " unidades registrada com sucesso!");
@@ -391,7 +393,7 @@ public class EstoqueUI extends JFrame {
 
         // Solicitar o ID do usuário que está realizando a exclusão
         String usuarioEmailStr = JOptionPane.showInputDialog(this,
-                "Informe o ID do usuário que está realizando a exclusão:",
+                "Informe o Email do usuário que está realizando a exclusão:",
                 "Confirmação de Usuário",
                 JOptionPane.QUESTION_MESSAGE);
 
@@ -406,7 +408,7 @@ public class EstoqueUI extends JFrame {
             Usuario usuario = usuarioService.buscarUsuarioPorEmail(usuarioEmail);
             if (usuario.getNome().isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                        "Usuário com ID " + usuarioEmail + " não encontrado!",
+                        "Usuário com Email " + usuarioEmail + " não encontrado!",
                         "Erro",
                         JOptionPane.ERROR_MESSAGE);
                 return;
@@ -419,7 +421,7 @@ public class EstoqueUI extends JFrame {
                     JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
-                boolean sucesso = itemService.deletarItem(id, usuarioEmail);
+                boolean sucesso = itemService.deletarItem(id);
                 if (sucesso) {
                     JOptionPane.showMessageDialog(this, "Item deletado com sucesso!");
                     carregarDados();
@@ -429,7 +431,7 @@ public class EstoqueUI extends JFrame {
             }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this,
-                    "Por favor, insira um ID de usuário válido.",
+                    "Por favor, insira um Email de usuário válido.",
                     "Erro de Formato",
                     JOptionPane.ERROR_MESSAGE);
         } catch (SQLException e) {
@@ -440,16 +442,5 @@ public class EstoqueUI extends JFrame {
         }
     }
 
-    // Método auxiliar para buscar usuário (você precisa implementar no UsuarioService)
-    private Usuario buscarUsuarioPorEmail(String email) {
-        try {
-            return usuarioService.buscarUsuarioPorEmail(email);
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao buscar usuário: " + e.getMessage(),
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-    }
+
 }

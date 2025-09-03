@@ -41,6 +41,9 @@ public class UsuarioService {
     public Usuario buscarUsuarioPorEmail(String email) throws SQLException {
         return usuarioDAO.buscarPorEmail(email);
     }
+    public Usuario buscarUsuarioPorId(int id) throws SQLException {
+        return usuarioDAO.buscarPorId(id);
+    }
 
     // 🔹 Autenticar usuário
     public Usuario autenticarUsuario(String nome, String email) throws SQLException {

@@ -30,27 +30,27 @@ public class ItemService {
         return itemDAO.modificar(id, novoItem);
     }
 
-    public boolean deletarItem(int id, String EmailUsuarioRetirada) throws SQLException {
-        return itemDAO.retirarItem(id, EmailUsuarioRetirada);
+    public boolean deletarItem(int id) throws SQLException {
+        return itemDAO.deletar(id);
     }
 
     public List<Item> buscarItensPorNome(String nome) throws SQLException {
         return itemDAO.buscarPorNome(nome);
     }
-    public boolean retirarItem(int idItem, String emailUsuario, int quantidade) throws SQLException {
+    public boolean retirarItem(int idItem, int idUsuario, int quantidade) throws SQLException {
         // Implementação para retirar quantidade específica
-        Item itemOptional = itemDAO.buscarPorId(idItem);
-        if (itemOptional == null) {
+        Item item = itemDAO.buscarPorId(idItem);
+        if (item == null) {
             return false;
         }
 
-        Item item = new Item();
+
         if (item.getQuantidade() < quantidade) {
             throw new IllegalArgumentException("Quantidade insuficiente em estoque");
         }
 
         // Atualiza a quantidade
         item.setQuantidade(item.getQuantidade() - quantidade);
-        return itemDAO.atualizarQuantidade(idItem, item.getQuantidade());
+        return itemDAO.atualizarQuantidade(idItem, idUsuario, item.getQuantidade());
     }
 }

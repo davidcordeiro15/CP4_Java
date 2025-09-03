@@ -11,7 +11,7 @@ public class Item {
     private String localizacao;
     private Date dataEntrada;
     private Date dataRetirada;
-    private String usuarioEntradaEmail; // ID do usuário que entrou o item
+    private int usuarioEntradaId; // ID do usuário que entrou o item
     private int usuarioRetiradaId; // ID do usuário que retirou o item
     private Usuario usuarioEntrada; // Objeto usuário (para joins)
     private Usuario usuarioRetirada; // Objeto usuário (para joins)
@@ -41,8 +41,8 @@ public class Item {
     public Date getDataRetirada() { return dataRetirada; }
     public void setDataRetirada(Date dataRetirada) { this.dataRetirada = dataRetirada; }
 
-    public String getUsuarioEntradaEmail() { return usuarioEntradaEmail; }
-    public void setUsuarioEntradaEmail(String usuarioEntradaId) { this.usuarioEntradaEmail = usuarioEntradaId; }
+    public int getUsuarioEntradaId() { return usuarioEntradaId; }
+    public void setUsuarioEntradaId(int usuarioEntradaId) { this.usuarioEntradaId = usuarioEntradaId; }
 
     public int getUsuarioRetiradaId() { return usuarioRetiradaId; }
     public void setUsuarioRetiradaId(int usuarioRetiradaId) { this.usuarioRetiradaId = usuarioRetiradaId; }

@@ -73,6 +73,20 @@ public class UsuarioDao {
             }
         }
     }
+    public Usuario buscarPorId(int id) throws SQLException {
+        try (Connection conn = DatabaseConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SELECT_BY_ID_SQL)) {
+
+            stmt.setInt(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapearResultSetParaUsuario(rs);
+                }
+                return null;
+            }
+        }
+    }
 
 
 
