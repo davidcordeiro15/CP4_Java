@@ -126,24 +126,7 @@ public class ItemDao {
         }
     }
 
-    // Buscar itens por nome
-    public List<Item> buscarPorNome(String nome) throws SQLException {
-        List<Item> itens = new ArrayList<>();
 
-        try (Connection conn = DatabaseConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SELECT_BY_NOME_SQL)) {
-
-            stmt.setString(1, "%" + nome + "%");
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    itens.add(mapearResultSetParaItem(rs));
-                }
-            }
-        }
-
-        return itens;
-    }
 
     // Atualizar item
     public boolean modificar(int id, Item item) throws SQLException {
@@ -218,9 +201,9 @@ public class ItemDao {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, novaQuantidade);
-            stmt.setInt(2, idItem);
-            stmt.setTimestamp(3, new java.sql.Timestamp(System.currentTimeMillis()));
-            stmt.setInt(4, idUsuario);
+            stmt.setTimestamp(2, new java.sql.Timestamp(System.currentTimeMillis()));
+            stmt.setInt(3, idUsuario);
+            stmt.setInt(4, idItem);
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;

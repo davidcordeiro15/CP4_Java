@@ -88,7 +88,7 @@ O projeto conta com testes unitários utilizando **JUnit** e
 
 -   Exibe tabela com os itens cadastrados.
 -   Botões: **Adicionar Produto**, **Atualizar Produto**, **Remover
-    Produto**.
+    Produto**, **Retirar Produto**.
 
 ------------------------------------------------------------------------
 

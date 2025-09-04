@@ -34,9 +34,7 @@ public class ItemService {
         return itemDAO.deletar(id);
     }
 
-    public List<Item> buscarItensPorNome(String nome) throws SQLException {
-        return itemDAO.buscarPorNome(nome);
-    }
+
     public boolean retirarItem(int idItem, int idUsuario, int quantidade) throws SQLException {
         // Implementação para retirar quantidade específica
         Item item = itemDAO.buscarPorId(idItem);

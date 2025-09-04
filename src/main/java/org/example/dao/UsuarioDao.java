@@ -33,12 +33,12 @@ public class UsuarioDao {
                 throw new SQLException("Falha ao criar usuário, nenhuma linha afetada.");
             }
 
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
-                } else {
-                    throw new SQLException("Falha ao criar usuário, nenhum ID obtido.");
-                }
+            Usuario usuarioCriado = buscarPorEmail(usuario.getEmail());
+            try  {
+
+                    return usuarioCriado.getId();
+            } catch (Exception ex) {
+                throw new SQLException("Falha ao criar usuário, nenhum ID obtido.");
             }
         }
     }
